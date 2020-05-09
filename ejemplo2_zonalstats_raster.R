@@ -11,29 +11,30 @@ library(sf)
 
 # Hacer raster stack y cáculos --------------------------------------------
 
-l <- list.files("data/raster/LST/", full.names = T)
+l <- list.files(path = "data/raster/LST", pattern = ".tif$", full.names = T)
+
 lst <- stack(l)
 lst <- (lst * 0.02) - 273.15
 
 # Leer comunas ------------------------------------------------------------
 
-comunas <- st_read("data/comunas.shp") %>% 
-  filter(Region == "Región Metropolitana de Santiago") %>% 
-  st_transform(crs=4326)
-
+comunas <- read_sf("data/comunas.shp") %>% 
+  filter(Region == "Región de Valparaíso") %>% 
+  st_transform(crs = st_crs(lst)) 
 
 # Hacer estadística zonal -------------------------------------------------
 
 max_ene <- comunas %>% 
-  dplyr::select(Comuna, Region, Provincia) %>% 
-  mutate(ene = raster::extract(lst$lst_01, comunas["Comuna"], fun=mean, na.rm=T))
+  dplyr::select(Comuna, Provincia, Region) %>% 
+  mutate(ene = raster::extract(lst$lst_01, comunas["Comuna"], fun = max, na.rm=T)) %>% 
+  filter(!is.na(ene))
   
 
 # Hacer gráfico -----------------------------------------------------------
 
-ggplot(max_ene) +
-  geom_sf(aes(fill = ene )) +
-  scale_fill_continuous(type = "viridis")
+p1 <- ggplot(max_ene)+
+  geom_sf(aes(fill=ene)) +
+  scale_fill_viridis_c()
 
 ## leaflet?
 ### Tarea: Intentar hacerlo con https://rstudio.github.io/leaflet/choropleths.html

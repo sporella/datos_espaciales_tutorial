@@ -48,4 +48,5 @@ ggplot(reciclaje_comuna, aes(x=reorder(Comuna, n), y = n, fill = Comuna)) +
   theme(legend.position = "none") +
   coord_flip()
 
+# Para revisarlo en Excel
 write_csv(tab_rec_com, "tabla.csv")
